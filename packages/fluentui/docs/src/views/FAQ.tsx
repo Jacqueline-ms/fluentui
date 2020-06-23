@@ -44,6 +44,7 @@ export default () => (
         {link('Teams Specific', '#teams-specific')}
         <ul>
           <li>{link('How to add Icons to Fluent UI?', '#how-to-add-icons-to-fluent-ui')}</li>
+          <li>{link('How can I reset or replace existing fonts?', '#how-can-i-reset-or-replace-existing-fonts')}</li>
         </ul>
       </li>
     </ul>
@@ -153,8 +154,9 @@ export default () => (
     <Answer
       content={
         <p>
-          Generally Teams should be using SVG icons only. If you need FontAwesome or other icons, process for adding
-          them is described in {link('Issue 585', 'https://github.com/microsoft/fluent-ui-react/pull/585')}
+          Teams should be using SVG icons only. The process for adding new icons in the
+          `@fluentui/react-icons-northstar` package is described in{' '}
+          {link('PR 12571', 'https://github.com/microsoft/fluentui/pull/12571')}.
         </p>
       }
     />
@@ -166,14 +168,14 @@ export default () => (
           <CodeSnippet
             mode="js"
             value={`
-              import { themes } from '@fluentui/react-northstar'
+              import { teamsTheme } from '@fluentui/react-northstar'
 
               // 💡 Your overrides should be defined before rendering any Fluent UI components
 
               // will remove all existing fontFaces
-              themes.teams.fontFaces = []
+              teamsTheme.fontFaces = []
               // will replace with own definitions
-              themes.teams.fontFaces = [{
+              teamsTheme.fontFaces = [{
                 name: 'Segoe UI',
                 paths: ['https://...'],
                 style: { fontWeight: 600 },

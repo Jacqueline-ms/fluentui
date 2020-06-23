@@ -5,6 +5,7 @@ const path = require('path');
 const flamegrill = require('flamegrill');
 const scenarioIterations = require('../src/scenarioIterations');
 const scenarioNames = require('../src/scenarioNames');
+const { scenarioRenderTypes, DefaultRenderTypes } = require('../src/scenarioRenderTypes');
 const { argv } = require('@uifabric/build').just;
 
 import { getFluentPerfRegressions } from './fluentPerfRegressions';
@@ -206,6 +207,7 @@ const urlForMaster = process.env.SYSTEM_PULLREQUEST_TARGETBRANCH
 const outDir = path.join(__dirname, '../dist');
 const tempDir = path.join(__dirname, '../logfiles');
 
+// tslint:disable-next-line:no-function-expression
 module.exports = async function getPerfRegressions() {
   const iterationsArgv = /** @type {number} */ argv().iterations;
   const iterationsArg = Number.isInteger(iterationsArgv) && iterationsArgv;
@@ -227,20 +229,30 @@ module.exports = async function getPerfRegressions() {
 
   /** @type {Scenarios} */
   const scenarios = {};
+  const scenarioSettings = {};
   scenarioList.forEach(scenarioName => {
     if (!scenariosAvailable.includes(scenarioName)) {
       throw new Error(`Invalid scenario: ${scenarioName}.`);
     }
     const iterations = iterationsArg || scenarioIterations[scenarioName] || iterationsDefault;
-    // These lines can be used to check for consistency.
-    // Array.from({ length: 20 }, (entry, index) => {
-    scenarios[scenarioName] = {
-      // scenarios[scenarioName + index] = {
-      baseline: `${urlForMaster}?scenario=${scenarioName}&iterations=${iterations}`,
-      scenario: `${urlForDeploy}?scenario=${scenarioName}&iterations=${iterations}`,
-    };
+    const renderTypes = scenarioRenderTypes[scenarioName] || DefaultRenderTypes;
+
+    renderTypes.forEach(renderType => {
+      const scenarioKey = `${scenarioName}-${renderType}`;
+      const testUrlParams = `?scenario=${scenarioName}&iterations=${iterations}&renderType=${renderType}`;
+
+      scenarios[scenarioKey] = {
+        baseline: `${urlForMaster}${testUrlParams}`,
+        scenario: `${urlForDeploy}${testUrlParams}`,
+      };
+
+      scenarioSettings[scenarioKey] = {
+        scenarioName,
+        iterations,
+        renderType,
+      };
+    });
   });
-  // });
 
   console.log(`\nRunning scenarios:`);
   console.dir(scenarios);
@@ -259,11 +271,23 @@ module.exports = async function getPerfRegressions() {
   }
 
   /** @type {ScenarioConfig} */
-  const scenarioConfig = { outDir, tempDir };
+  const scenarioConfig = {
+    outDir,
+    tempDir,
+    pageActions: async (page, options) => {
+      // Occasionally during our CI, page takes unexpected amount of time to navigate (unsure about the root cause).
+      // Removing the timeout to avoid perf-test failures but be cautious about long test runs.
+      page.setDefaultTimeout(0);
+
+      await page.goto(options.url);
+      await page.waitForSelector('#render-done');
+    },
+  };
+
   /** @type {CookResults} */
   const scenarioResults = await flamegrill.cook(scenarios, scenarioConfig);
 
-  let comment = createReport(scenarioResults);
+  let comment = createReport(scenarioSettings, scenarioResults);
 
   comment = comment.concat(getFluentPerfRegressions());
 
@@ -286,15 +310,15 @@ module.exports = async function getPerfRegressions() {
  * @param {CookResults} testResults
  * @returns {string}
  */
-function createReport(testResults) {
+function createReport(scenarioSettings, testResults) {
   const report = '## [Perf Analysis](https://github.com/microsoft/fluentui/wiki/Perf-Testing)\n'
 
     // Show only significant changes by default.
-    .concat(createScenarioTable(testResults, false))
+    .concat(createScenarioTable(scenarioSettings, testResults, false))
 
     // Show all results in a collapsible table.
     .concat('<details><summary>All results</summary><p>')
-    .concat(createScenarioTable(testResults, true))
+    .concat(createScenarioTable(scenarioSettings, testResults, true))
     .concat('</p></details>\n\n');
 
   return report;
@@ -307,7 +331,7 @@ function createReport(testResults) {
  * @param {boolean} showAll Show only significant results by default.
  * @returns {string}
  */
-function createScenarioTable(testResults, showAll) {
+function createScenarioTable(scenarioSettings, testResults, showAll) {
   const resultsToDisplay = Object.keys(testResults).filter(
     key =>
       showAll ||
@@ -324,22 +348,27 @@ function createScenarioTable(testResults, showAll) {
   <table>
   <tr>
     <th>Scenario</th>
+    <th>Render type</th>
     <th>
       <a href="https://github.com/microsoft/fluentui/wiki/Perf-Testing#why-are-results-listed-in-ticks-instead-of-time-units">Master Ticks</a>
     </th>
     <th>
       <a href="https://github.com/microsoft/fluentui/wiki/Perf-Testing#why-are-results-listed-in-ticks-instead-of-time-units">PR Ticks</a>
     </th>
+    <th>Iterations</th>
     <th>Status</th>
   </tr>`.concat(
     resultsToDisplay
       .map(key => {
         const testResult = testResults[key];
+        const { scenarioName, iterations, renderType } = scenarioSettings[key] || {};
 
         return `<tr>
-            <td>${scenarioNames[key] || key}</td>
+            <td>${scenarioName}</td>
+            <td>${renderType}</td>
             ${getCell(testResult, true)}
             ${getCell(testResult, false)}
+            <td>${iterations}</td>
             ${getRegression(testResult)}
            </tr>`;
       })

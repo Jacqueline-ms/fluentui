@@ -1,7 +1,11 @@
-import { IStyle } from 'office-ui-fabric-react/lib/Styling';
+import { IStyle, ITheme } from 'office-ui-fabric-react/lib/Styling';
 import { IChartDataPoint } from '../index';
 
 export interface IPieProps {
+  /**
+   * Theme
+   */
+  theme: ITheme;
   /**
    * Width of the Pie.
    */
@@ -61,6 +65,16 @@ export interface IPieProps {
    * internal prop for href
    */
   href?: string;
+
+  /**
+   * props for inside donut value
+   */
+  valueInsideDonut?: string | number;
+
+  /**
+   * id of the focused arc
+   */
+  focusedArcId?: string;
 }
 
 export interface IPieStyles {

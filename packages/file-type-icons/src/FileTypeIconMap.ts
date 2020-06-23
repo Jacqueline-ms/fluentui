@@ -15,7 +15,9 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'aif',
       'aiff',
       'aac',
+      'alac',
       'amr',
+      'ape',
       'au',
       'awb',
       'dct',
@@ -63,6 +65,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'build',
       'builder',
       'c',
+      'cbl',
       'c++',
       'capfile',
       'cc',
@@ -110,12 +113,12 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'go',
       'groovy',
       'gvy',
-      'Hcp',
       'h',
       'h++',
       'haml',
       'handlebars',
       'hbs',
+      'hcp',
       'hh',
       'hpp',
       'hrl',
@@ -136,6 +139,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'js',
       'json',
       'jsp',
+      'jsproj',
       'jsx',
       'l',
       'less',
@@ -252,7 +256,9 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
   csv: {
     extensions: ['csv'],
   },
+  desktopfolder: {},
   docset: {},
+  documentfolder: {},
   docx: {
     extensions: ['doc', 'docm', 'docx', 'docb'],
   },
@@ -326,6 +332,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
   onetoc: {
     extensions: ['ms-one-stub', 'onetoc', 'onetoc2', 'onepkg'], // this icon represents a complete, logical notebook.
   },
+  pbiapp: {},
   pdf: {
     extensions: ['pdf'],
   },
@@ -335,6 +342,10 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'bmp',
       'cr2',
       'crw',
+      'dic',
+      'dicm',
+      'dcm',
+      'dcm30',
       'dcr',
       'dds',
       'dib',
@@ -358,6 +369,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'pict',
       'png',
       'pns',
+      'psb',
       'psd',
       'raw',
       'tga',
@@ -367,6 +379,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
     ],
   },
   photo360: {},
+  picturesfolder: {},
   potx: {
     extensions: ['pot', 'potm', 'potx'],
   },
@@ -439,6 +452,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
   vector: {
     extensions: [
       'ai',
+      'ait',
       'cvs',
       'dgn',
       'gdraw',
@@ -448,6 +462,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'fig',
       'ind',
       'indd',
+      'indl',
       'indt',
       'indb',
       'ps',
@@ -479,6 +494,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
       'mp2',
       'mp2v',
       'mp4',
+      'mp4v',
       'mpa',
       'mpe',
       'mpeg',
@@ -509,7 +525,7 @@ export const FileTypeIconMap: { [key: string]: { extensions?: string[] } } = {
     extensions: ['vst', 'vstm', 'vstx', 'vsx'],
   },
   xlsx: {
-    extensions: ['xlc', 'xls', 'xlsb', 'xlsm', 'xlsx'],
+    extensions: ['xlc', 'xls', 'xlsb', 'xlsm', 'xlsx', 'xlw'],
   },
   xltx: {
     extensions: ['xlt', 'xltm', 'xltx'],

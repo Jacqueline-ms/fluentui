@@ -9,10 +9,12 @@ const TopLevelEntryFileExclusions = ['index.js', 'version.js', 'index.bundle.js'
 const resolvePath = (packageName, entryFileName = 'index.js') =>
   path.join(path.dirname(require.resolve(packageName)).replace('lib-commonjs', 'lib'), entryFileName);
 
-// Create entries for all top level fabric imports.
+// Create entries for all top level imports.
 const Entries = _buildEntries('office-ui-fabric-react');
+_buildEntries('@fluentui/react-next', Entries);
 
-// Add entry for keyboard-key package.
+// Create entries for single top level import.
+Entries['react-compose'] = resolvePath('@fluentui/react-compose');
 Entries['keyboard-key'] = resolvePath('@fluentui/keyboard-key');
 
 // Note: The experimental button bundle evaluation seems to be slowing down PRs
@@ -63,8 +65,7 @@ module.exports = Object.keys(Entries).map(
 /**
  * Build webpack entries based on top level imports available in a package.
  */
-function _buildEntries(packageName) {
-  const entries = {};
+function _buildEntries(packageName, entries = {}) {
   let packagePath = '';
 
   try {
@@ -85,7 +86,7 @@ function _buildEntries(packageName) {
       // Replace commonjs paths with lib paths.
       const entryPath = path.join(packagePath, itemName);
 
-      entries[`${packageName}-${entryName}`] = entryPath;
+      entries[`${packageName.replace('@', '').replace('/', '-')}-${entryName}`] = entryPath;
     }
   });
 

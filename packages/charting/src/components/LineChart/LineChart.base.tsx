@@ -5,7 +5,7 @@ import { scaleLinear as d3ScaleLinear, scaleTime as d3ScaleTime } from 'd3-scale
 import { select as d3Select } from 'd3-selection';
 import * as d3TimeFormat from 'd3-time-format';
 import { ILegend, Legends } from '../Legends/index';
-import { classNamesFunction, getId } from 'office-ui-fabric-react/lib/Utilities';
+import { classNamesFunction, getId, find } from 'office-ui-fabric-react/lib/Utilities';
 import { IProcessedStyleSet, mergeStyles } from 'office-ui-fabric-react/lib/Styling';
 import {
   ILineChartProps,
@@ -15,9 +15,15 @@ import {
   ILineChartPoints,
 } from './LineChart.types';
 import { Callout, DirectionalHint } from 'office-ui-fabric-react/lib/Callout';
-import { FocusZone, FocusZoneDirection } from 'office-ui-fabric-react';
+import { FocusZone, FocusZoneDirection } from '@fluentui/react-focus';
+import { EventsAnnotation } from './eventAnnotation/EventAnnotation';
 
 const getClassNames = classNamesFunction<ILineChartStyleProps, ILineChartStyles>();
+
+export interface IRefArrayData {
+  index?: string;
+  refElement?: SVGGElement;
+}
 
 export class LineChartBase extends React.Component<
   ILineChartProps,
@@ -30,6 +36,7 @@ export class LineChartBase extends React.Component<
     YValueHover: { legend?: string; y?: number; color?: string }[];
     hoverYValue: string | number | null;
     hoverXValue: string | number | null;
+    refArray: IRefArrayData[];
     activeLegend: string;
     lineColor: string;
     // tslint:disable-next-line:no-any
@@ -40,12 +47,11 @@ export class LineChartBase extends React.Component<
 > {
   private _points: ILineChartPoints[];
   // tslint:disable-next-line:no-any
-  private _calloutPoints: any;
+  private _calloutPoints: any[];
   private _classNames: IProcessedStyleSet<ILineChartStyles>;
   private _reqID: number;
   private xAxisElement: SVGElement | null;
   private yAxisElement: SVGElement | null;
-  private currentRef = React.createRef<SVGLineElement>();
   // tslint:disable-next-line:no-any
   private _xAxisScale: any = '';
   // tslint:disable-next-line:no-any
@@ -55,8 +61,9 @@ export class LineChartBase extends React.Component<
   private legendContainer: HTMLDivElement;
   private _calloutId: string;
   // These margins are necessary for d3Scales to appear without cutting off
-  private margins = { top: 20, right: 20, bottom: 35, left: 40 };
+  private margins = { top: 20, right: 20, bottom: 35, left: 65 };
   private minLegendContainerHeight: number = 32;
+  private eventLabelHeight: number = 36;
   constructor(props: ILineChartProps) {
     super(props);
     this.state = {
@@ -66,6 +73,7 @@ export class LineChartBase extends React.Component<
       containerWidth: 0,
       isCalloutVisible: false,
       hoverYValue: '',
+      refArray: [],
       hoverXValue: '',
       activeLegend: '',
       YValueHover: [],
@@ -83,19 +91,39 @@ export class LineChartBase extends React.Component<
         .toString(36)
         .substring(7);
     this._fitParentContainer = this._fitParentContainer.bind(this);
+    props.eventAnnotationProps &&
+      props.eventAnnotationProps.labelHeight &&
+      (this.eventLabelHeight = props.eventAnnotationProps.labelHeight);
   }
 
   public componentDidMount(): void {
     this._fitParentContainer();
-    window.addEventListener('resize', this._fitParentContainer);
   }
 
   public componentWillUnmount(): void {
     cancelAnimationFrame(this._reqID);
   }
 
+  public componentDidUpdate(prevProps: ILineChartProps): void {
+    /** note that height and width are not used to resize or set as dimesions of the chart,
+     * fitParentContainer is responisble for setting the height and width or resizing of the svg/chart
+     */
+    if (prevProps.height !== this.props.height || prevProps.width !== this.props.width) {
+      this._fitParentContainer();
+    }
+  }
+
   public render(): JSX.Element {
-    const { theme, className, styles, tickValues, tickFormat } = this.props;
+    const {
+      theme,
+      className,
+      styles,
+      tickValues,
+      tickFormat,
+      yAxisTickFormat,
+      hideLegend = false,
+      eventAnnotationProps,
+    } = this.props;
     this._points = this.props.data.lineChartData ? this.props.data.lineChartData : [];
     if (this.props.parentRef) {
       this._fitParentContainer();
@@ -115,7 +143,7 @@ export class LineChartBase extends React.Component<
     if (dataPresent) {
       dataType ? this._createDateXAxis(tickValues, tickFormat) : this._createNumericXAxis();
       const strokeWidth = this.props.strokeWidth ? this.props.strokeWidth : 4;
-      this._createYAxis();
+      this._createYAxis(yAxisTickFormat);
       lines = this._createLines(strokeWidth);
     }
     const legendBars = this._createLegends(this._points!);
@@ -149,31 +177,74 @@ export class LineChartBase extends React.Component<
               ref={(e: SVGElement | null) => {
                 this.yAxisElement = e;
               }}
-              transform={`translate(40, 0)`}
+              transform={`translate(65, 0)`}
               className={this._classNames.yAxis}
             />
+            <g>
+              <line
+                x1={0}
+                y1={0}
+                x2={0}
+                y2={svgDimensions.height}
+                stroke={'steelblue'}
+                className={'verticalLine'}
+                visibility={'hidden'}
+                strokeDasharray={'5,5'}
+              />
+            </g>
             <g>{lines}</g>
+            {eventAnnotationProps && (
+              <EventsAnnotation
+                {...eventAnnotationProps}
+                scale={this._xAxisScale}
+                chartYTop={this.margins.top + this.eventLabelHeight}
+                chartYBottom={svgDimensions.height - 35}
+              />
+            )}
           </svg>
         </FocusZone>
         <div ref={(e: HTMLDivElement) => (this.legendContainer = e)} className={this._classNames.legendContainer}>
-          {legendBars}
+          {!hideLegend && legendBars}
         </div>
-        {this.state.isCalloutVisible ? (
+        {!this.props.hideTooltip && this.state.isCalloutVisible ? (
           <Callout
             target={this.state.refSelected}
             isBeakVisible={false}
-            gapSpace={10}
+            gapSpace={15}
             directionalHint={DirectionalHint.topAutoEdge}
             id={this._calloutId}
           >
-            <div className={this._classNames.calloutContentRoot} role={'presentation'}>
-              <span className={this._classNames.calloutContentX}>{this.state.hoverXValue}</span>
-              {this.state.YValueHover &&
-                this.state.YValueHover.map((xValue: { legend?: string; y?: number; color?: string }, index: number) => (
-                  <span key={index} className={mergeStyles(this._classNames.calloutContentY, { color: xValue.color })}>
-                    <span>{xValue.legend}</span> <span>{xValue.y}</span>
-                  </span>
-                ))}
+            <div className={this._classNames.calloutContentRoot}>
+              <div className={this._classNames.calloutDateTimeContainer}>
+                <div className={this._classNames.calloutContentX}>{this.state.hoverXValue} </div>
+                {/*TO DO  if we add time for callout then will use this */}
+                {/* <div className={this._classNames.calloutContentX}>07:00am</div> */}
+              </div>
+              <div className={this._classNames.calloutInfoContainer}>
+                {this.state.YValueHover &&
+                  this.state.YValueHover.map(
+                    (
+                      xValue: {
+                        legend?: string;
+                        y?: number;
+                        color?: string;
+                        yAxisCalloutData?: string;
+                      },
+                      index: number,
+                    ) => (
+                      <div
+                        className={mergeStyles(this._classNames.calloutBlockContainer, {
+                          borderLeft: `4px solid ${xValue.color}`,
+                        })}
+                      >
+                        <div className={this._classNames.calloutlegendText}> {xValue.legend}</div>
+                        <div className={this._classNames.calloutContentY}>
+                          {xValue.yAxisCalloutData ? xValue.yAxisCalloutData : xValue.y}
+                        </div>
+                      </div>
+                    ),
+                  )}
+              </div>
             </div>
           </Callout>
         ) : null}
@@ -182,7 +253,13 @@ export class LineChartBase extends React.Component<
   }
 
   private CalloutData = (values: ILineChartPoints[]) => {
-    let combinedResult: { legend: string; y: number; x: number | Date | string; color: string }[] = [];
+    let combinedResult: {
+      legend: string;
+      y: number;
+      x: number | Date | string;
+      color: string;
+      yAxisCalloutData?: string;
+    }[] = [];
 
     values.forEach((element: { data: ILineChartDataPoint[]; legend: string; color: string }) => {
       const elements = element.data.map((ele: ILineChartDataPoint) => {
@@ -193,17 +270,27 @@ export class LineChartBase extends React.Component<
 
     const result: { x: number | Date | string; values: { legend: string; y: number }[] }[] = [];
     combinedResult.forEach(
-      (e1: { legend: string; y: number; x: number | Date | string; color: string }, index: number) => {
+      (
+        e1: { legend: string; y: number; x: number | Date | string; color: string; yAxisCalloutData: string },
+        index: number,
+      ) => {
         e1.x = e1.x instanceof Date ? e1.x.toLocaleDateString() : e1.x;
-        const filteredValues = [{ legend: e1.legend, y: e1.y, color: e1.color }];
+        const filteredValues = [{ legend: e1.legend, y: e1.y, color: e1.color, yAxisCalloutData: e1.yAxisCalloutData }];
         combinedResult
           .slice(index + 1)
-          .forEach((e2: { legend: string; y: number; x: number | Date | string; color: string }) => {
-            e2.x = e2.x instanceof Date ? e2.x.toLocaleDateString() : e2.x;
-            if (e1.x === e2.x) {
-              filteredValues.push({ legend: e2.legend, y: e2.y, color: e2.color });
-            }
-          });
+          .forEach(
+            (e2: { legend: string; y: number; x: number | Date | string; color: string; yAxisCalloutData: string }) => {
+              e2.x = e2.x instanceof Date ? e2.x.toLocaleDateString() : e2.x;
+              if (e1.x === e2.x) {
+                filteredValues.push({
+                  legend: e2.legend,
+                  y: e2.y,
+                  color: e2.color,
+                  yAxisCalloutData: e2.yAxisCalloutData,
+                });
+              }
+            },
+          );
         result.push({ x: e1.x, values: filteredValues });
       },
     );
@@ -228,11 +315,12 @@ export class LineChartBase extends React.Component<
 
   private _fitParentContainer(): void {
     const { containerWidth, containerHeight } = this.state;
+    const { hideLegend = false } = this.props;
 
     this._reqID = requestAnimationFrame(() => {
       const legendContainerComputedStyles = getComputedStyle(this.legendContainer);
       const legendContainerHeight =
-        (this.legendContainer.getBoundingClientRect().height || this.minLegendContainerHeight) +
+        (this.legendContainer.getBoundingClientRect().height || (!hideLegend ? this.minLegendContainerHeight : 0)) +
         parseFloat(legendContainerComputedStyles.marginTop || '0') +
         parseFloat(legendContainerComputedStyles.marginBottom || '0');
 
@@ -309,8 +397,7 @@ export class LineChartBase extends React.Component<
     if (this.xAxisElement) {
       d3Select(this.xAxisElement)
         .call(xAxis)
-        .selectAll('text')
-        .style('font', '10px Segoe UI semibold');
+        .selectAll('text');
     }
   }
 
@@ -351,12 +438,12 @@ export class LineChartBase extends React.Component<
     if (this.xAxisElement) {
       d3Select(this.xAxisElement)
         .call(xAxis)
-        .selectAll('text')
-        .style('font', '10px Segoe UI Semibold');
+        .selectAll('text');
     }
   };
 
-  private _createYAxis = () => {
+  // tslint:disable-next-line: no-any
+  private _createYAxis = (yAxisTickFormat: any) => {
     const { yMaxValue = 0, yMinValue = 0 } = this.props;
     const yMax = d3Max(this._points, (point: ILineChartPoints) => {
       return d3Max(point.data, (item: ILineChartDataPoint) => item.y);
@@ -369,17 +456,20 @@ export class LineChartBase extends React.Component<
     const domainValues = this._prepareDatapoints(finalYmax, finalYmin, 4);
     const yAxisScale = d3ScaleLinear()
       .domain([finalYmin, domainValues[domainValues.length - 1]])
-      .range([this.state.containerHeight - this.margins.bottom, this.margins.top]);
+      .range([
+        this.state.containerHeight - this.margins.bottom,
+        this.margins.top + (this.props.eventAnnotationProps ? this.eventLabelHeight : 0),
+      ]);
     this._yAxisScale = yAxisScale;
     const yAxis = d3AxisLeft(yAxisScale)
       .tickSize(-(this.state.containerWidth - this.margins.left - this.margins.right))
       .tickPadding(12)
-      .tickValues(domainValues);
+      .tickValues(domainValues)
+      .tickFormat(yAxisTickFormat);
     this.yAxisElement
       ? d3Select(this.yAxisElement)
           .call(yAxis)
           .selectAll('text')
-          .style('font', '10px Segoe UI semibold')
       : '';
   };
 
@@ -407,6 +497,9 @@ export class LineChartBase extends React.Component<
         const keyVal = this._uniqLineText + i + '_' + j;
         const x1 = this._points[i].data[j - 1].x;
         const y1 = this._points[i].data[j - 1].y;
+        const x2 = this._points[i].data[j].x;
+        const y2 = this._points[i].data[j].y;
+        const xAxisCalloutData = this._points[i].data[j - 1].xAxisCalloutData;
         if (this.state.activeLegend === legendVal || this.state.activeLegend === '') {
           lines.push(
             <line
@@ -414,64 +507,200 @@ export class LineChartBase extends React.Component<
               key={keyVal}
               x1={this._xAxisScale(x1)}
               y1={this._yAxisScale(y1)}
-              x2={this._xAxisScale(this._points[i].data[j].x)}
-              y2={this._yAxisScale(this._points[i].data[j].y)}
+              x2={this._xAxisScale(x2)}
+              y2={this._yAxisScale(y2)}
               strokeWidth={strokeWidth}
-              ref={this.currentRef}
+              ref={(e: SVGLineElement | null) => {
+                this._refCallback(e!, keyVal);
+              }}
               stroke={lineColor}
               strokeLinecap={'round'}
-              onMouseOver={this._handleHover.bind(this, x1, y1, lineColor)}
-              onMouseMove={this._handleHover.bind(this, x1, y1, lineColor)}
-              onMouseOut={this._handleMouseOut}
               opacity={1}
-              data-is-focusable={i === 0 ? true : false}
-              onFocus={this._handleHover.bind(this, x1, y1, lineColor)}
-              onBlur={this._handleMouseOut}
-              aria-labelledby={this._calloutId}
+              onClick={this._onLineClick.bind(this, this._points[i].onLineClick)}
             />,
           );
+          lines.push(
+            <circle
+              id={keyVal + 1}
+              key={keyVal + 1}
+              r={0.2}
+              cx={this._xAxisScale(x1)}
+              cy={this._yAxisScale(y1)}
+              aria-labelledby={this._calloutId}
+              data-is-focusable={i === 0 ? true : false}
+              onMouseOver={this._handleHover.bind(this, x1, y1, lineColor, xAxisCalloutData, keyVal + 1)}
+              onMouseMove={this._handleHover.bind(this, x1, y1, lineColor, xAxisCalloutData, keyVal + 1)}
+              onMouseOut={this._handleMouseOut.bind(this, keyVal + 1, lineColor)}
+              onFocus={this._handleFocus.bind(this, keyVal, x1, y1, lineColor, xAxisCalloutData, keyVal + 1)}
+              onBlur={this._handleMouseOut.bind(this, keyVal + 1, lineColor)}
+              onClick={this._onDataPointClick.bind(
+                this,
+                this._points[i].data[j - 1].onDataPointClick,
+                keyVal + 1,
+                lineColor,
+              )}
+              opacity={1}
+              fill={lineColor}
+              stroke={lineColor}
+              strokeWidth={3}
+            />,
+          );
+          if (j + 1 === this._points[i].data.length) {
+            lines.push(
+              <circle
+                id={keyVal + 2}
+                key={keyVal + 2}
+                r={0.2}
+                cx={this._xAxisScale(x2)}
+                cy={this._yAxisScale(y2)}
+                aria-labelledby={this._calloutId}
+                data-is-focusable={i === 0 ? true : false}
+                onMouseOver={this._handleHover.bind(this, x2, y2, lineColor, xAxisCalloutData, keyVal + 2)}
+                onMouseMove={this._handleHover.bind(this, x2, y2, lineColor, xAxisCalloutData, keyVal + 2)}
+                onMouseOut={this._handleMouseOut.bind(this, keyVal + 2, lineColor)}
+                onFocus={this._handleFocus.bind(this, keyVal, x2, y2, lineColor, xAxisCalloutData, keyVal + 2)}
+                onBlur={this._handleMouseOut.bind(this, keyVal + 2, lineColor)}
+                onClick={this._onDataPointClick.bind(
+                  this,
+                  this._points[i].data[j].onDataPointClick,
+                  keyVal + 2,
+                  lineColor,
+                )}
+                opacity={1}
+                fill={lineColor}
+                stroke={lineColor}
+                strokeWidth={3}
+              />,
+            );
+          }
         } else {
+          lines.push(
+            <circle
+              id={keyVal + 1}
+              key={keyVal + 1}
+              r={5}
+              cx={this._xAxisScale(x1)}
+              cy={this._yAxisScale(y1)}
+              opacity={0.1}
+              fill={lineColor}
+            />,
+          );
           lines.push(
             <line
               id={keyVal}
               key={keyVal}
               x1={this._xAxisScale(x1)}
               y1={this._yAxisScale(y1)}
-              x2={this._xAxisScale(this._points[i].data[j].x)}
-              y2={this._yAxisScale(this._points[i].data[j].y)}
+              x2={this._xAxisScale(x2)}
+              y2={this._yAxisScale(y2)}
               strokeWidth={strokeWidth}
               stroke={lineColor}
               strokeLinecap={'round'}
               opacity={0.1}
             />,
           );
+          if (j + 1 === this._points[i].data.length) {
+            lines.push(
+              <circle
+                id={keyVal + 2}
+                key={keyVal + 2}
+                r={5}
+                cx={this._xAxisScale(x2)}
+                cy={this._yAxisScale(y2)}
+                fill={lineColor}
+                opacity={0.1}
+              />,
+            );
+          }
         }
       }
     }
     return lines;
   }
 
+  private _refCallback(element: SVGGElement, legendTitle: string): void {
+    this.state.refArray.push({ index: legendTitle, refElement: element });
+  }
+
+  private _handleFocus = (
+    keyVal: string,
+    x: number | Date,
+    y: number | string,
+    lineColor: string,
+    xAxisCalloutData: string,
+    circleId: string,
+  ) => {
+    const formattedData = x instanceof Date ? x.toLocaleDateString() : x;
+    const found = find(this._calloutPoints, (element: { x: string | number }) => element.x === formattedData);
+    const _this = this;
+    d3Select('#' + circleId)
+      .attr('fill', '#fff')
+      .attr('r', 8);
+    d3Select('.verticalLine')
+      .attr('transform', () => `translate(${_this._xAxisScale(x)}, 0)`)
+      .attr('visibility', 'visibility');
+    this.state.refArray.map((obj: IRefArrayData) => {
+      if (obj.index === keyVal) {
+        this.setState({
+          isCalloutVisible: true,
+          refSelected: obj.refElement,
+          hoverXValue: xAxisCalloutData ? xAxisCalloutData : '' + formattedData,
+          hoverYValue: y,
+          YValueHover: found.values,
+          lineColor: lineColor,
+        });
+      }
+    });
+  };
+
   private _handleHover = (
     x: number | Date,
     y: number | string,
     lineColor: string,
+    xAxisCalloutData: string,
+    keyVal: string,
     mouseEvent: React.MouseEvent<SVGPathElement>,
   ) => {
     mouseEvent.persist();
     const formattedData = x instanceof Date ? x.toLocaleDateString() : x;
-
-    const found = this._calloutPoints.find((element: { x: string | number }) => element.x === formattedData);
+    const _this = this;
+    d3Select('#' + keyVal)
+      .attr('fill', '#fff')
+      .attr('r', 8);
+    d3Select('.verticalLine')
+      .attr('transform', () => `translate(${_this._xAxisScale(x)}, 0)`)
+      .attr('visibility', 'visibility');
+    const found = find(this._calloutPoints, (element: { x: string | number }) => element.x === formattedData);
     this.setState({
       isCalloutVisible: true,
       refSelected: mouseEvent,
-      hoverXValue: '' + formattedData,
+      hoverXValue: xAxisCalloutData ? xAxisCalloutData : '' + formattedData,
       hoverYValue: y,
       YValueHover: found.values,
       lineColor: lineColor,
     });
   };
 
-  private _handleMouseOut = () => {
+  private _onLineClick = (func: () => void) => {
+    if (!!func) {
+      func();
+    }
+  };
+
+  private _onDataPointClick = (func: () => void, keyVal: string, color: string) => {
+    d3Select('#' + keyVal)
+      .attr('fill', color)
+      .attr('r', 8);
+    if (!!func) {
+      func();
+    }
+  };
+
+  private _handleMouseOut = (keyVal: string, lineColor: string) => {
+    d3Select('#' + keyVal)
+      .attr('fill', lineColor)
+      .attr('r', 0.2);
+    d3Select('.verticalLine').attr('visibility', 'hidden');
     this.setState({
       isCalloutVisible: false,
     });

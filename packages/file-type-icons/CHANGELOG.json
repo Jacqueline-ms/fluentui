@@ -2,6 +2,154 @@
   "name": "@uifabric/file-type-icons",
   "entries": [
     {
+      "date": "Wed, 17 Jun 2020 16:07:40 GMT",
+      "tag": "@uifabric/file-type-icons_v7.3.5",
+      "version": "7.3.5",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add special folder icon names to FileTypeIconMap. Fix icon name for special documents folder.",
+            "author": "taenri@microsoft.com",
+            "commit": "f764406bbbf389aaaaf1edff36e84fc6f3fcbc4c",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 Jun 2020 17:35:36 GMT",
+      "tag": "@uifabric/file-type-icons_v7.3.4",
+      "version": "7.3.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "Clean up devDependencies and clarify version file placeholder comments",
+            "author": "elcraig@microsoft.com",
+            "commit": "695c29fcf6f07a903e7d849098c5e6c0ec178b3d",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 29 May 2020 12:35:34 GMT",
+      "tag": "@uifabric/file-type-icons_v7.3.0",
+      "version": "7.3.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add special folder icon types for file-type-icons.",
+            "author": "taenri@microsoft.com",
+            "commit": "cfcf5178fb8304109274a68121c7762a91f55d5b",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 25 May 2020 12:38:22 GMT",
+      "tag": "@uifabric/file-type-icons_v7.2.49",
+      "version": "7.2.49",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add empty alt text for filetype icon img",
+            "author": "erabelle@microsoft.com",
+            "commit": "eb1750d8c3f1f0e5a6c1506b5b16261454f7b451",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 15 May 2020 00:07:39 GMT",
+      "tag": "@uifabric/file-type-icons_v7.2.44",
+      "version": "7.2.44",
+      "comments": {
+        "patch": [
+          {
+            "comment": "adding 'pbiapp' entry in file type icon mapping file",
+            "author": "caperez@microsoft.com",
+            "commit": "e3b694db919a39d5369381d43f601eeedf06fbef",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 07 May 2020 01:06:55 GMT",
+      "tag": "@uifabric/file-type-icons_v7.2.40",
+      "version": "7.2.40",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Addressing commonjs imports.",
+            "author": "dzearing@microsoft.com",
+            "commit": "f4a995d4166c7812976b13c6638fb1ae32a8667d",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 06 May 2020 12:32:22 GMT",
+      "tag": "@uifabric/file-type-icons_v7.2.39",
+      "version": "7.2.39",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Using a fresh version string to bust the CDN cache. I tested v1 and it brings back all the right icons.",
+            "author": "caperez@microsoft.com",
+            "commit": "8c8c394e5097b81602df3d40c6fc19cf387fc451",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 16 Apr 2020 04:01:45 GMT",
+      "tag": "@uifabric/file-type-icons_v7.2.30",
+      "version": "7.2.30",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Readme: Remove section about fluent icons (should be default now); Fabric=>Fluent wording updates",
+            "author": "elcraig@microsoft.com",
+            "commit": "9e3c7c7d4b92e132820cdbcd61a667829c712ecb",
+            "package": "@uifabric/file-type-icons"
+          },
+          {
+            "comment": "Improving the icon filetype mapping file to cover even more extensions, including those already served by Teams mobile app",
+            "author": "caperez@microsoft.com",
+            "commit": "c847450db51500f13847542b8f4c89dd277bb2bb",
+            "package": "@uifabric/file-type-icons"
+          }
+        ],
+        "none": [
+          {
+            "comment": "sync package version",
+            "author": "xgao@microsoft.com",
+            "commit": "6f39958352207acb3029458503db0969a4359806",
+            "package": "@uifabric/file-type-icons"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 09 Apr 2020 12:24:31 GMT",
+      "tag": "@uifabric/file-type-icons_v7.2.28",
+      "version": "7.2.28",
+      "comments": {
+        "none": [
+          {
+            "comment": "chore: bump @types/react",
+            "author": "olfedias@microsoft.com",
+            "commit": "1c25191a3a6a1b6e8a0aca3c7cf7f3a629171738"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 25 Mar 2020 12:30:04 GMT",
       "tag": "@uifabric/file-type-icons_v7.2.26",
       "version": "7.2.26",

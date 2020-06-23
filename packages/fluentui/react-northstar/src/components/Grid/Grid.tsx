@@ -22,27 +22,29 @@ export interface GridProps extends UIComponentProps, ChildrenComponentProps, Con
   accessibility?: Accessibility;
 
   /** The columns of the grid with a space-separated list of values. The values represent the track size, and the space between them represents the grid line. */
-  columns?: string | number;
+  columns?: number;
 
   /** The rows of the grid with a space-separated list of values. The values represent the track size, and the space between them represents the grid line. */
-  rows?: string | number;
+  rows?: number;
 }
+
+export const gridClassName = 'ui-grid';
 
 class Grid extends UIComponent<WithAsProp<GridProps>> {
   static displayName = 'Grid';
 
-  static className = 'ui-grid';
+  static deprecated_className = gridClassName;
 
   static propTypes = {
     ...commonPropTypes.createCommon({
       content: false,
     }),
-    columns: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    columns: PropTypes.number,
     content: customPropTypes.every([
       customPropTypes.disallow(['children']),
       PropTypes.oneOfType([PropTypes.arrayOf(customPropTypes.nodeContent), customPropTypes.nodeContent]),
     ]),
-    rows: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    rows: PropTypes.number,
   };
 
   static defaultProps: WithAsProp<GridProps> = {

@@ -1,7 +1,7 @@
 import { ComponentSlotStylesPrepared, ICSSInJSStyle } from '@fluentui/styles';
-import RadioGroupItem, {
-  RadioGroupItemProps,
-  RadioGroupItemState,
+import {
+  RadioGroupItemStylesProps,
+  radioGroupItemSlotClassNames,
 } from '../../../../components/RadioGroup/RadioGroupItem';
 import { RadioGroupItemVariables } from './radioGroupItemVariables';
 import { pxToRem } from '../../../../utils';
@@ -19,7 +19,7 @@ const restHoverFocusTextColor = textColor => ({
   },
 });
 
-const radioStyles: ComponentSlotStylesPrepared<RadioGroupItemProps & RadioGroupItemState, RadioGroupItemVariables> = {
+const radioStyles: ComponentSlotStylesPrepared<RadioGroupItemStylesProps, RadioGroupItemVariables> = {
   root: ({ props: p, variables: v, theme: { siteVariables } }): ICSSInJSStyle => ({
     position: 'relative',
     alignItems: 'center',
@@ -36,7 +36,7 @@ const radioStyles: ComponentSlotStylesPrepared<RadioGroupItemProps & RadioGroupI
     ':hover': {
       color: v.textColorDefaultHoverFocus,
 
-      [`& .${RadioGroupItem.slotClassNames.indicator}`]: {
+      [`& .${radioGroupItemSlotClassNames.indicator}`]: {
         borderColor: v.textColorDefaultHoverFocus,
 
         ...(!p.disabled &&

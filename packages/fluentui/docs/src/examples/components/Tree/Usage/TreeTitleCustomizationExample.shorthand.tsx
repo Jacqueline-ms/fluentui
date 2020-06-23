@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Icon, Tree } from '@fluentui/react-northstar';
+import { Tree } from '@fluentui/react-northstar';
+import { TriangleDownIcon, TriangleEndIcon } from '@fluentui/react-icons-northstar';
 
 const items = [
   {
@@ -30,10 +31,10 @@ const items = [
   },
 ];
 
-const titleRenderer = (Component, { content, open, hasSubtree, ...restProps }) => (
-  <Component open={open} hasSubtree={hasSubtree} {...restProps}>
-    {hasSubtree && <Icon name={open ? 'triangle-down' : 'triangle-right'} />}
-    <span>{content}</span>
+const titleRenderer = (Component, { content, expanded, open, hasSubtree, ...restProps }) => (
+  <Component expanded={expanded} hasSubtree={hasSubtree} {...restProps}>
+    {expanded ? <TriangleDownIcon /> : <TriangleEndIcon />}
+    {content}
   </Component>
 );
 

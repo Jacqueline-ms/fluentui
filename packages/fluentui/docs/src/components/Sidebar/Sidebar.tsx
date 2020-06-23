@@ -6,21 +6,22 @@ import {
   HierarchicalTreeItemProps,
   HierarchicalTreeProps,
   HierarchicalTreeTitleProps,
-  Icon,
   ICSSInJSStyle,
   Input,
   Segment,
   Text,
   ShorthandValue,
+  Image,
 } from '@fluentui/react-northstar';
 import { CopyToClipboard } from '@fluentui/docs-components';
 import Logo from '../Logo/Logo';
 import { getComponentPathname } from '../../utils';
-import keyboardKey from 'keyboard-key';
+import { getCode, keyboardKey } from '@fluentui/keyboard-key';
 import * as _ from 'lodash';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
 import { NavLink, NavLinkProps, withRouter } from 'react-router-dom';
+import { SearchIcon, TriangleDownIcon, TriangleUpIcon, FilesTxtIcon, EditIcon } from '@fluentui/react-icons-northstar';
 
 type ComponentMenuItem = { displayName: string; type: string };
 
@@ -67,7 +68,7 @@ class Sidebar extends React.Component<any, any> {
   };
 
   handleDocumentKeyDown = e => {
-    const code = keyboardKey.getCode(e);
+    const code = getCode(e);
     const isAZ = code >= 65 && code <= 90;
     const hasModifier = e.altKey || e.ctrlKey || e.metaKey;
     const bodyHasFocus = document.activeElement === document.body;
@@ -91,7 +92,7 @@ class Sidebar extends React.Component<any, any> {
   };
 
   keyDownCallback(e) {
-    if (keyboardKey.getCode(e) !== keyboardKey.Enter) {
+    if (getCode(e) !== keyboardKey.Enter) {
       return;
     }
     e.stopPropagation();
@@ -147,6 +148,15 @@ class Sidebar extends React.Component<any, any> {
             },
           },
           {
+            key: 'shorthand',
+            title: {
+              as: NavLink,
+              content: 'Shorthand Props',
+              activeClassName: 'active',
+              to: '/shorthand-props',
+            },
+          },
+          {
             key: 'composition',
             title: {
               as: NavLink,
@@ -156,12 +166,12 @@ class Sidebar extends React.Component<any, any> {
             },
           },
           {
-            key: 'shorthand',
+            key: 'icons-viewer',
             title: {
               as: NavLink,
-              content: 'Shorthand Props',
+              content: 'Icons',
               activeClassName: 'active',
-              to: '/shorthand-props',
+              to: '/icon-viewer',
             },
           },
           {
@@ -379,11 +389,6 @@ class Sidebar extends React.Component<any, any> {
         public: true,
       },
       {
-        key: 'iconviewer',
-        title: { content: 'Processed Icons', as: NavLink, to: '/icon-viewer' },
-        public: false,
-      },
-      {
         key: 'virtualized-tree',
         title: { content: 'VirtualizedTree', as: NavLink, to: '/virtualized-tree' },
         public: true,
@@ -451,7 +456,7 @@ class Sidebar extends React.Component<any, any> {
     const allSectionsWithoutSearchFilter = this.getSectionsWithoutSearchFilter();
 
     const escapedQuery = _.escapeRegExp(this.state.query);
-    const regexQuery = new RegExp(`^${escapedQuery}`, 'i');
+    const regexQuery = new RegExp(`.*${escapedQuery}`, 'i');
     const allSectionsWithPossibleEmptySections = _.map(
       allSectionsWithoutSearchFilter,
       (section: HierarchicalTreeItemProps) => {
@@ -484,7 +489,7 @@ class Sidebar extends React.Component<any, any> {
     const titleRenderer = (Component, { content, open, hasSubtree, ...restProps }) => (
       <Component open={open} hasSubtree={hasSubtree} {...restProps}>
         <span>{content}</span>
-        {hasSubtree && this.state.query === '' && <Icon name={open ? 'icon-arrow-up' : 'icon-arrow-down'} />}
+        {hasSubtree && this.state.query === '' && (open ? <TriangleUpIcon /> : <TriangleDownIcon />)}
       </Component>
     );
 
@@ -550,13 +555,20 @@ class Sidebar extends React.Component<any, any> {
           <a href={constants.repoURL} target="_blank" rel="noopener noreferrer" style={topItemTheme}>
             <Box>
               GitHub
-              <Icon name="github" styles={{ float: 'right' }} />
+              <Image src="public/images/github.png" width="20px" height="20px" styles={{ float: 'right' }} />
             </Box>
           </a>
+          <NavLink to="/builder" exact style={topItemTheme} activeStyle={{ fontWeight: 'bold' }}>
+            <Box>
+              Builder
+              <span style={{ border: 'orange', color: 'orange', marginLeft: '0.5rem' }}>alpha</span>
+              <EditIcon styles={{ float: 'right' }} />
+            </Box>
+          </NavLink>
           <a href={changeLogUrl} target="_blank" rel="noopener noreferrer" style={topItemTheme}>
             <Box>
               CHANGELOG
-              <Icon name="file alternate outline" styles={{ float: 'right' }} />
+              <FilesTxtIcon styles={{ float: 'right' }} />
             </Box>
           </a>
           <Input
@@ -564,7 +576,7 @@ class Sidebar extends React.Component<any, any> {
             inverted
             fluid
             clearable
-            icon="search"
+            icon={<SearchIcon />}
             placeholder="Search"
             iconPosition="end"
             role="search"

@@ -6,33 +6,114 @@
 
 import * as React from 'react';
 
-// @public (undocumented)
-export function compose<InputProps, InputStylesProps, ParentProps, ParentStylesProps>(InputComponent: React.FunctionComponent<ParentProps> & {
-    fluentComposeConfig?: ComposePreparedOptions;
-}, composeOptions?: ComposeOptions<InputProps, InputStylesProps, ParentStylesProps>): ComposedComponent<InputProps, InputStylesProps, ParentProps, ParentStylesProps>;
+// @public
+export type ClassDictionary = Record<string, string>;
+
+// @public
+export type ClassFunction = (state: GenericDictionary, slots: GenericDictionary) => ClassDictionary;
 
 // @public (undocumented)
-export type ComposedComponent<InputProps = {}, InputStylesProps = {}, ParentProps = {}, ParentStylesProps = {}> = React.FunctionComponent<InputProps & ParentProps> & {
-    fluentComposeConfig: ComposePreparedOptions<InputProps, InputStylesProps, ParentProps, ParentStylesProps>;
-};
-
-// @public (undocumented)
-export type ComposeOptions<InputProps = {}, InputStylesProps = {}, ParentStylesProps = {}> = {
-    className?: string;
+export interface ComponentWithAs<TElementType extends React.ElementType = 'div', TProps = {}> extends React.FunctionComponent {
+    // (undocumented)
+    <TExtendedElementType extends React.ElementType = TElementType>(props: Omit<PropsOfElement<TExtendedElementType>, 'as' | keyof TProps> & {
+        as?: TExtendedElementType;
+    } & TProps): JSX.Element | null;
+    // (undocumented)
+    defaultProps?: Partial<TProps & {
+        as: TElementType;
+    }>;
+    // (undocumented)
     displayName?: string;
-    mapPropsToStylesProps?: (props: ParentStylesProps & InputProps) => InputStylesProps;
-    handledProps?: (keyof InputProps)[];
-    overrideStyles?: boolean;
+    // (undocumented)
+    propTypes?: React.WeakValidationMap<TProps> & {
+        as: React.Requireable<string | ((props: any, context?: any) => any) | (new (props: any, context?: any) => any)>;
+    };
+}
+
+// @public (undocumented)
+export function compose<TElementType extends React.ElementType, TInputProps, TInputStylesProps, TParentProps, TParentStylesProps>(input: Input<TElementType, TInputProps>, inputOptions?: ComposeOptions<TInputProps, TInputStylesProps, TParentProps, TParentStylesProps>): ComponentWithAs<TElementType, TInputProps & TParentProps>;
+
+// @public (undocumented)
+export type ComposedComponent<TProps = {}> = React.FunctionComponent<TProps> & {
+    fluentComposeConfig: Required<ComposePreparedOptions>;
 };
 
 // @public (undocumented)
-export type ComposePreparedOptions<InputProps = {}, InputStylesProps = {}, ParentProps = {}, ParentStylesProps = {}> = {
-    className: string;
-    displayNames: string[];
-    mapPropsToStylesPropsChain: ((props: ParentStylesProps & InputProps) => InputStylesProps)[];
-    handledProps: (keyof (ParentProps & InputProps))[];
-    overrideStyles: boolean;
+export type ComposeOptions<TInputProps = {}, TInputStylesProps = {}, TParentProps = {}, TParentStylesProps = {}, TState = TParentProps & TInputProps> = {
+    className?: string;
+    classes?: ClassDictionary | ClassFunction | (ClassDictionary | ClassFunction)[];
+    displayName?: string;
+    mapPropsToStylesProps?: (props: TParentStylesProps & TInputProps) => TInputStylesProps;
+    handledProps?: (keyof TInputProps | 'as')[];
+    overrideStyles?: boolean;
+    slots?: Record<string, React.ElementType>;
+    slotProps?: (props: TParentProps & TInputProps) => Record<string, object>;
+    shorthandConfig?: ShorthandConfig<TParentProps & TInputProps>;
+    state?: (props: TState, ref: React.Ref<HTMLElement>, options: ComposePreparedOptions) => any;
 };
+
+// @public
+export type ComposePreparedOptions<TProps = {}, TInputState = any, TParentState = TProps> = {
+    className: string;
+    classes: (undefined | ClassDictionary | ClassFunction)[];
+    displayName: string;
+    displayNames: string[];
+    mapPropsToStylesPropsChain: ((props: object) => object)[];
+    render: ComposeRenderFunction;
+    handledProps: (keyof TProps | 'as')[];
+    overrideStyles: boolean;
+    slots: Record<string, React.ElementType> & {
+        __self: React.ElementType;
+    };
+    slotProps: ((props: TProps) => Record<string, object>)[];
+    state: (props: TParentState, ref: React.Ref<HTMLElement>, options: ComposePreparedOptions) => TInputState;
+    resolveSlotProps: <TResolvedProps>(props: TResolvedProps) => Record<string, object>;
+    shorthandConfig: ShorthandConfig<TProps>;
+};
+
+// @public (undocumented)
+export type ComposeRenderFunction<TElementType extends React.ElementType = 'div', TProps = {}, TState = TProps> = (props: TProps, ref: React.Ref<TElementType extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[TElementType] : TElementType>, options: ComposePreparedOptions & {
+    state: any;
+}) => React.ReactElement | null;
+
+// @public
+export const createClassResolver: (classes: Record<string, string>) => (state: Record<string, any>) => Record<string, string>;
+
+// @public
+export type GenericDictionary = Record<string, any>;
+
+// @public (undocumented)
+export type Input<TElementType extends React.ElementType = 'div', TProps = {}> = InputComposeComponent<TProps> | ComposeRenderFunction<TElementType, TProps & {
+    as?: React.ElementType;
+}>;
+
+// @public (undocumented)
+export type InputComposeComponent<TProps = {}> = React.FunctionComponent<TProps> & {
+    fluentComposeConfig?: Required<ComposePreparedOptions>;
+};
+
+// @public
+export function mergeProps<TProps, TState = TProps>(state: TState, options: ComposePreparedOptions<TProps, TState>): MergePropsResult<TState>;
+
+// @public (undocumented)
+export type MergePropsResult<TState extends GenericDictionary> = {
+    state: TState;
+    slots: GenericDictionary;
+    slotProps: GenericDictionary;
+};
+
+// @public (undocumented)
+export type PropsOfElement<E extends keyof JSX.IntrinsicElements | React.JSXElementConstructor<any>> = JSX.LibraryManagedAttributes<E, React.ComponentPropsWithRef<E>>;
+
+// @public (undocumented)
+export interface ShorthandConfig<TProps> {
+    // (undocumented)
+    allowsJSX?: boolean;
+    // (undocumented)
+    mappedArrayProp?: keyof TProps;
+    // (undocumented)
+    mappedProp?: keyof TProps;
+}
 
 
 // (No @packageDocumentation comment for this package)

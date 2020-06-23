@@ -240,11 +240,14 @@ export const colorScheme: ColorSchemeMapping<ColorScheme, TeamsColorNames> = {
     backgroundHover: colors.grey[100],
     backgroundHover1: colors.grey[150],
     backgroundHover2: 'transparent',
+    backgroundHover3: colors.grey[150],
+    backgroundHover4: colors.grey[50],
 
     borderHover: colors.grey[250], // buttons
 
     foregroundPressed: colors.grey[750],
     backgroundPressed: colors.grey[200],
+    backgroundPressed3: colors.grey[150],
     borderPressed: colors.grey[250],
 
     foregroundActive: colors.grey[750],
@@ -274,8 +277,10 @@ export const colorScheme: ColorSchemeMapping<ColorScheme, TeamsColorNames> = {
     foregroundDisabled1: colors.grey[250],
     foregroundDisabled: colors.grey[250],
 
-    backgroundDisabled1: colors.grey[150],
     backgroundDisabled: colors.grey[150],
+    backgroundDisabled1: colors.grey[150],
+    backgroundDisabled2: colors.grey[50],
+    backgroundDisabled3: colors.grey[50],
 
     borderDisabled: colors.grey[150],
   }),
@@ -307,6 +312,7 @@ export const colorScheme: ColorSchemeMapping<ColorScheme, TeamsColorNames> = {
 
     backgroundHover: colors.brand[700],
     backgroundHover1: colors.brand[50],
+    backgroundHover2: colors.brand[100],
 
     foregroundPressed: colors.brand[800],
     foregroundPressed1: colors.white,

@@ -1,4 +1,4 @@
-import * as keyboardKey from 'keyboard-key';
+import { keyboardKey } from '@fluentui/keyboard-key';
 import { Accessibility } from '../../types';
 
 /**
@@ -32,5 +32,7 @@ const accordionBehavior: Accessibility = () => ({
     },
   },
 });
+
+export type AccordionBehaviorProps = never;
 
 export default accordionBehavior;

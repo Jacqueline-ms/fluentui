@@ -2,14 +2,14 @@ import * as React from 'react';
 
 import { renderDropdown, items, getItemIdRegexByIndex } from './test-utils';
 import Dropdown from 'src/components/Dropdown/Dropdown';
-import DropdownSelectedItem from 'src/components/Dropdown/DropdownSelectedItem';
+import { dropdownSelectedItemSlotClassNames } from 'src/components/Dropdown/DropdownSelectedItem';
 import { implementsShorthandProp, isConformant } from 'test/specs/commonTests';
 import { findIntrinsicElement } from 'test/utils';
 import { DropdownItemProps } from 'src/components/Dropdown/DropdownItem';
 import { ShorthandValue } from 'src/types';
 import List from 'src/components/List/List';
 
-jest.dontMock('keyboard-key');
+jest.dontMock('@fluentui/keyboard-key');
 jest.useFakeTimers();
 
 describe('Dropdown', () => {
@@ -55,6 +55,27 @@ describe('Dropdown', () => {
           value: null,
         }),
       );
+    });
+
+    it('should have the indicator tabbable if not a search', () => {
+      const { getClearIndicatorNode } = renderDropdown({
+        clearable: true,
+        defaultValue: items[0],
+      });
+
+      expect(getClearIndicatorNode()).toHaveAttribute('tabindex', '0');
+      expect(getClearIndicatorNode()).toHaveAttribute('role', 'button');
+    });
+
+    it('should not have the indicator tabbable if a search', () => {
+      const { getClearIndicatorNode } = renderDropdown({
+        clearable: true,
+        defaultValue: items[0],
+        search: true,
+      });
+
+      expect(getClearIndicatorNode()).not.toHaveAttribute('tabindex');
+      expect(getClearIndicatorNode()).not.toHaveAttribute('role', 'button');
     });
   });
 
@@ -762,6 +783,28 @@ describe('Dropdown', () => {
       );
     });
 
+    it('It shows no matches message when all iems are selected', () => {
+      // it will actually be the third, since one is already removed from the list due to defaultValue.
+      const noResultsMessage = 'no items';
+
+      const { clickOnItemAtIndex, clickOnToggleIndicator, itemsListNode } = renderDropdown({
+        items: ['item0', 'item1'],
+        open: true,
+        search: true,
+        multiple: true,
+        noResultsMessage,
+      });
+
+      // Select all
+      clickOnItemAtIndex(0);
+      clickOnItemAtIndex(0);
+
+      // open
+      clickOnToggleIndicator();
+
+      expect(itemsListNode.textContent).toBe(noResultsMessage);
+    });
+
     it('has onChange called with null value by hitting Escape in search input', () => {
       const onChange = jest.fn();
       const { keyDownOnSearchInput } = renderDropdown({
@@ -781,6 +824,22 @@ describe('Dropdown', () => {
           searchQuery: '',
         }),
       );
+    });
+
+    it('onChange is called after onSearchQueryChange', () => {
+      const onChange = jest.fn();
+      const onSearchQueryChange = jest.fn();
+
+      const { keyDownOnSearchInput } = renderDropdown({
+        defaultValue: items[2],
+        defaultSearchQuery: items[2],
+        onChange,
+        onSearchQueryChange,
+        search: true,
+      });
+
+      keyDownOnSearchInput('Escape');
+      expect(onChange.mock.invocationCallOrder[0]).toBeGreaterThan(onSearchQueryChange.mock.invocationCallOrder[0]);
     });
 
     it('is set by clicking on item', () => {
@@ -1075,12 +1134,35 @@ describe('Dropdown', () => {
         defaultValue: [items[0], items[1]],
       });
 
-      findIntrinsicElement(wrapper, `.${DropdownSelectedItem.slotClassNames.icon}`)
+      findIntrinsicElement(wrapper, `.${dropdownSelectedItemSlotClassNames.icon}`)
         .at(0)
         .simulate('click');
 
       expect(getSelectedItemNodes()).toHaveLength(1);
       expect(getSelectedItemNodeAtIndex(0)).toHaveTextContent(items[1]);
+    });
+
+    it('keeps selection when the same item is selected', () => {
+      const selectedItemIndex = 0;
+      const selectedItem = items[selectedItemIndex];
+      const { clickOnItemAtIndex, triggerButtonNode, clickOnTriggerButton, keyDownOnItemsList } = renderDropdown({
+        defaultValue: selectedItem,
+        defaultOpen: true,
+      });
+
+      clickOnItemAtIndex(selectedItemIndex);
+
+      expect(triggerButtonNode).toHaveTextContent(selectedItem);
+
+      clickOnTriggerButton();
+      keyDownOnItemsList('Enter');
+
+      expect(triggerButtonNode).toHaveTextContent(selectedItem);
+
+      clickOnTriggerButton();
+      keyDownOnItemsList('Tab');
+
+      expect(triggerButtonNode).toHaveTextContent(selectedItem);
     });
   });
 
@@ -1644,6 +1726,24 @@ describe('Dropdown', () => {
     });
   });
 
+  describe('searchInput', () => {
+    it("merges refs from user's input", () => {
+      const inputRef = React.createRef<HTMLInputElement>();
+
+      const { keyDownOnSearchInput } = renderDropdown({
+        defaultSearchQuery: 'Foo',
+        multiple: true,
+        search: true,
+        searchInput: { inputRef },
+      });
+
+      keyDownOnSearchInput('Backspace');
+
+      // This test asserts also on internals that a condition that uses internal `inputRef` will pass.
+      expect(inputRef.current).toBeInstanceOf(HTMLInputElement);
+    });
+  });
+
   describe('disabled', () => {
     it('allows no action on the trigger button', () => {
       const {
@@ -1710,6 +1810,87 @@ describe('Dropdown', () => {
       toggleIndicatorNode.focus();
 
       expect(toggleIndicatorNode).not.toHaveFocus();
+    });
+  });
+
+  describe('footer and header messages', () => {
+    it('shows loadingMessage when status is loading', () => {
+      const loadingMessage = 'loading results';
+      const { getItemNodeAtIndex } = renderDropdown({
+        open: true,
+        loadingMessage,
+        loading: true,
+      });
+
+      expect(getItemNodeAtIndex(items.length)).toHaveTextContent(loadingMessage);
+    });
+
+    it('shows noResultsMessage when status is no results', () => {
+      const noResultsMessage = 'oups we found nothing';
+      const { getItemNodeAtIndex } = renderDropdown({
+        open: true,
+        noResultsMessage,
+        items: [],
+      });
+
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(noResultsMessage);
+    });
+
+    it('shows headerMessage when status is custom', () => {
+      const headerMessage = 'just some status';
+      const { getItemNodeAtIndex } = renderDropdown({
+        open: true,
+        headerMessage,
+      });
+
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(headerMessage);
+    });
+
+    it('can juggle between messages depending on the status', () => {
+      const headerMessage = 'just some status';
+      const noResultsMessage = 'oups we found nothing';
+      const loadingMessage = 'loading results';
+      const { getItemNodeAtIndex, getItemNodes, rerender } = renderDropdown({
+        open: true,
+        noResultsMessage,
+        loadingMessage,
+      });
+
+      expect(getItemNodes()).toHaveLength(items.length);
+
+      rerender({ headerMessage });
+
+      expect(getItemNodes()).toHaveLength(items.length + 1);
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(headerMessage);
+
+      rerender({ loading: true });
+
+      expect(getItemNodes()).toHaveLength(items.length + 2);
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(headerMessage);
+      expect(getItemNodeAtIndex(items.length + 1)).toHaveTextContent(loadingMessage);
+
+      rerender({ items: [] });
+
+      expect(getItemNodes()).toHaveLength(2);
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(headerMessage);
+      expect(getItemNodeAtIndex(1)).toHaveTextContent(loadingMessage);
+
+      rerender({ loading: false });
+
+      expect(getItemNodes()).toHaveLength(2);
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(headerMessage);
+      expect(getItemNodeAtIndex(1)).toHaveTextContent(noResultsMessage);
+
+      rerender({ items: [items[0]] });
+
+      expect(getItemNodes()).toHaveLength(2);
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(headerMessage);
+      expect(getItemNodeAtIndex(1)).toHaveTextContent(items[0]);
+
+      rerender({ headerMessage: undefined });
+
+      expect(getItemNodes()).toHaveLength(1);
+      expect(getItemNodeAtIndex(0)).toHaveTextContent(items[0]);
     });
   });
 });

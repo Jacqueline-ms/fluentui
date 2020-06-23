@@ -63,6 +63,7 @@ export const zIndexes: Record<string, number> = {
   foreground: 1, // Put a component in front
   menuItem: 2, // Currently used only for menu item beak element
   overlay: 1000, // Dialog/popup/menu overlays
+  overlayPriority: 1001, // for nested overlays, like tooltip in dialog.
   debug: 999999999, // for debug purposes
 };
 
@@ -71,8 +72,7 @@ export const zIndexes: Record<string, number> = {
 //
 export const bodyPadding = 0;
 export const bodyMargin = 0;
-export const bodyFontFamily =
-  '"Segoe UI", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", Helvetica, Arial, sans-serif';
+export const bodyFontFamily = '"Segoe UI", system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
 export const bodyFontSize = fontSizes.medium;
 export const bodyBackground = colors.white;
 export const bodyColor = colors.grey[750];

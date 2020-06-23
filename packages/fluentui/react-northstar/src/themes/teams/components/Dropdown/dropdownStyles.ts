@@ -1,10 +1,11 @@
 import { ComponentSlotStylesPrepared, ICSSInJSStyle } from '@fluentui/styles';
-import { default as Dropdown, DropdownProps, DropdownState } from '../../../../components/Dropdown/Dropdown';
+import { dropdownSlotClassNames, DropdownProps, DropdownState } from '../../../../components/Dropdown/Dropdown';
 import { DropdownVariables } from './dropdownVariables';
 import { pxToRem } from '../../../../utils';
 import getBorderFocusStyles from '../../getBorderFocusStyles';
 import clearIndicatorUrl from './clearIndicatorUrl';
 import toggleIndicatorUrl from './toggleIndicatorUrl';
+import * as _ from 'lodash';
 
 type DropdownPropsAndState = DropdownProps & DropdownState;
 
@@ -36,22 +37,24 @@ const getWidth = (p: DropdownPropsAndState, v: DropdownVariables): string => {
   return v.width;
 };
 
+const isEmpty = prop => {
+  return typeof prop === 'object' && !prop.props && !_.get(prop, 'children') && !_.get(prop, 'content');
+};
+
 const dropdownStyles: ComponentSlotStylesPrepared<DropdownPropsAndState, DropdownVariables> = {
   root: ({ props: p }): ICSSInJSStyle => ({
     ...(p.inline && { display: 'inline-flex' }),
   }),
 
-  clearIndicator: ({ variables: v }) => ({
+  clearIndicator: ({ variables: v, props: p }) => ({
     alignItems: 'center',
     display: 'flex',
     justifyContent: 'center',
-
-    backgroundImage: clearIndicatorUrl(v.color),
+    ...(isEmpty(p.clearIndicator) && { backgroundImage: clearIndicatorUrl(v.color) }),
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
     cursor: 'pointer',
     userSelect: 'none',
-
     margin: 0,
     position: 'absolute',
     right: pxToRem(6),
@@ -80,22 +83,20 @@ const dropdownStyles: ComponentSlotStylesPrepared<DropdownPropsAndState, Dropdow
       ...(p.open && {
         borderColor: v.openBorderColorHover,
       }),
-
-      ...(p.disabled && {
-        backgroundColor: v.disabledBackgroundColorHover,
-        borderColor: v.disabledBorderColorHover,
-      }),
-
-      [`& .${Dropdown.slotClassNames.triggerButton}`]: {
-        color: v.triggerButtonColorHover,
-
-        ...(p.disabled && {
-          color: v.disabledTriggerColorHover,
-        }),
-      },
+    },
+    ':active': {
+      backgroundColor: v.backgroundColor,
+    },
+    ':focus-within': {
+      // when dropdown's selected items are focused
+      // keep the focus border style
+      borderBottomColor: v.borderColorFocus,
     },
     ...(p.focused && {
-      ...(p.search && { borderBottomColor: v.borderColorFocus }),
+      backgroundColor: v.backgroundColor,
+      ...(p.search && {
+        borderBottomColor: v.borderColorFocus,
+      }),
       ...(!p.search &&
         !p.open &&
         p.isFromKeyboard &&
@@ -105,6 +106,38 @@ const dropdownStyles: ComponentSlotStylesPrepared<DropdownPropsAndState, Dropdow
       ...transparentColorStyleObj,
       alignItems: 'center',
     }),
+    ...(p.inverted && {
+      backgroundColor: v.invertedBackgroundColor,
+      ':hover': {
+        backgroundColor: v.invertedBackgroundColorHover,
+      },
+      ':active': {
+        backgroundColor: v.invertedBackgroundColorHover,
+      },
+      ':focus': {
+        backgroundColor: v.invertedBackgroundColorHover,
+      },
+    }),
+
+    ...(p.disabled && {
+      backgroundColor: siteVariables.colorScheme.default.backgroundDisabled,
+      borderColor: siteVariables.colorScheme.default.borderDisabled,
+      userSelect: 'none',
+
+      ':hover': {
+        backgroundColor: siteVariables.colorScheme.default.backgroundDisabled,
+      },
+
+      ':active': {
+        backgroundColor: siteVariables.colorScheme.default.backgroundDisabled,
+      },
+    }),
+
+    [`& .${dropdownSlotClassNames.triggerButton}`]: {
+      ...(p.disabled && {
+        color: siteVariables.colorScheme.default.foregroundDisabled,
+      }),
+    },
   }),
 
   selectedItems: ({ props: p, variables: v }): ICSSInJSStyle => ({
@@ -120,6 +153,7 @@ const dropdownStyles: ComponentSlotStylesPrepared<DropdownPropsAndState, Dropdow
     return {
       overflow: 'hidden',
       boxShadow: 'none',
+      ...transparentColorStyleObj,
       margin: '0',
       justifyContent: 'left',
       padding: v.comboboxPaddingButton,
@@ -127,24 +161,29 @@ const dropdownStyles: ComponentSlotStylesPrepared<DropdownPropsAndState, Dropdow
       ...transparentColorStyleObj,
       ':focus': {
         color: v.color,
-        ':active': {
-          color: v.triggerButtonColorFocusActive,
-        },
+        ...transparentColorStyleObj,
       },
       ':focus-visible': {
         color: v.color,
         ...transparentColorStyle,
         ':after': {
           borderColor: 'transparent',
+          borderRightWidth: 0,
         },
         ':before': {
           borderColor: 'transparent',
+          borderRightWidth: 0,
         },
-        ':active': transparentColorStyle,
+      },
+      ':active': {
+        color: v.color, // required for HC theme
+        ...transparentColorStyle,
+        animationName: 'unset',
+        animationDuration: 'unset',
       },
       ':hover': {
         ...transparentColorStyle,
-        color: v.triggerButtonColorHover,
+        color: v.color, // required for HC theme
       },
       ...(p.inline && {
         paddingLeft: 0,
@@ -173,12 +212,16 @@ const dropdownStyles: ComponentSlotStylesPrepared<DropdownPropsAndState, Dropdow
   }),
 
   loadingMessage: ({ variables: v }): ICSSInJSStyle => ({
-    backgroundColor: v.listItemBackgroundColor,
+    backgroundColor: v.loadingMessageBackgroundColor,
   }),
 
   noResultsMessage: ({ variables: v }): ICSSInJSStyle => ({
-    backgroundColor: v.listItemBackgroundColor,
+    backgroundColor: v.noResultsMessageBackgroundColor,
     fontWeight: 'bold',
+  }),
+
+  headerMessage: ({ variables: v }): ICSSInJSStyle => ({
+    backgroundColor: v.headerMessageBackgroundColor,
   }),
 
   toggleIndicator: ({ props: p, variables: v }) => ({

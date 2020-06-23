@@ -18,6 +18,7 @@ type UseAccessibilityResult = (<SlotProps extends Record<string, any> & UserProp
   slotProps: SlotProps,
 ) => MergedProps<SlotProps>) & {
   unstable_wrapWithFocusZone: (children: React.ReactElement) => React.ReactElement;
+  unstable_behaviorDefinition: () => ReactAccessibilityBehavior;
 };
 
 type UserProps = {
@@ -43,6 +44,7 @@ const useAccessibility = <Props>(behavior: Accessibility<Props>, options: UseAcc
 
   const getA11yProps: UseAccessibilityResult = (slotName, userProps) => {
     const hasKeyDownHandlers = Boolean(definition.keyHandlers[slotName] || userProps.onKeyDown);
+    const childBehavior = definition.childBehaviors ? definition.childBehaviors[slotName] : undefined;
     slotProps.current[slotName] = userProps;
 
     // We want to avoid adding event handlers until it's really needed
@@ -61,6 +63,7 @@ const useAccessibility = <Props>(behavior: Accessibility<Props>, options: UseAcc
     }
 
     const finalProps: MergedProps = {
+      ...(childBehavior && { accessibility: childBehavior }),
       ...definition.attributes[slotName],
       ...userProps,
       onKeyDown: slotHandlers.current[slotName],
@@ -88,6 +91,8 @@ const useAccessibility = <Props>(behavior: Accessibility<Props>, options: UseAcc
 
     return element;
   };
+
+  getA11yProps.unstable_behaviorDefinition = () => definition;
 
   return getA11yProps;
 };

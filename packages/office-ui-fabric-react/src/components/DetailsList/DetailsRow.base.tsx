@@ -197,6 +197,7 @@ export class DetailsRowBase extends React.Component<IDetailsRowBaseProps, IDetai
       cellsByColumn,
       groupNestingDepth,
       useFastIcons = true,
+      cellStyleProps,
     } = this.props;
     const { columnMeasureInfo, isDropping } = this.state;
     const { isSelected = false, isSelectionModal = false } = this.state.selectionState;
@@ -221,6 +222,7 @@ export class DetailsRowBase extends React.Component<IDetailsRowBaseProps, IDetai
         className,
         compact,
         enableUpdateAnimations,
+        cellStyleProps,
       }),
     };
 
@@ -253,6 +255,7 @@ export class DetailsRowBase extends React.Component<IDetailsRowBaseProps, IDetai
         onRenderItemColumn={onRenderItemColumn}
         getCellValueKey={getCellValueKey}
         enableUpdateAnimations={enableUpdateAnimations}
+        cellStyleProps={cellStyleProps}
       />
     );
 
@@ -274,6 +277,7 @@ export class DetailsRowBase extends React.Component<IDetailsRowBaseProps, IDetai
         aria-describedby={ariaDescribedBy}
         className={this._classNames.root}
         data-selection-index={itemIndex}
+        data-selection-touch-invoke={true}
         data-item-index={itemIndex}
         aria-rowindex={itemIndex + 1}
         data-automationid="DetailsRow"
@@ -405,6 +409,7 @@ export class DetailsRowBase extends React.Component<IDetailsRowBaseProps, IDetai
       updateDropState: this._updateDroppingState,
       onDrop: dragDropEvents!.onDrop,
       onDragEnd: dragDropEvents!.onDragEnd,
+      onDragOver: dragDropEvents!.onDragOver,
     };
 
     return options;

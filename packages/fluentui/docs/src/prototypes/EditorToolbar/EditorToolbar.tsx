@@ -3,7 +3,6 @@ import {
   Divider,
   Flex,
   Form,
-  Icon,
   Menu,
   Popup,
   Ref,
@@ -16,20 +15,37 @@ import {
   ToolbarMenuItemShorthandKinds,
 } from '@fluentui/react-northstar';
 import { useEventListener } from '@fluentui/react-component-event-listener';
-import * as keyboardKey from 'keyboard-key';
+import { getCode, keyboardKey } from '@fluentui/keyboard-key';
 import * as _ from 'lodash';
 import * as React from 'react';
 
 import { EditorToolbarAction, EditorToolbarState, FontFormatting } from './editorToolbarReducer';
 import EditorToolbarTable from './EditorToolbarTable';
+import {
+  BoldIcon,
+  BulletsIcon,
+  CodeSnippetIcon,
+  FontColorIcon,
+  FontSizeIcon,
+  HighlightIcon,
+  ItalicIcon,
+  LinkIcon,
+  NumberListIcon,
+  RemoveFormatIcon,
+  TableIcon,
+  TrashCanIcon,
+  UnderlineIcon,
+  ChevronDownIcon,
+  QnaIcon,
+} from '@fluentui/react-icons-northstar';
 
 type EditorToolbarProps = EditorToolbarState & {
   dispatch: React.Dispatch<EditorToolbarAction>;
   target?: Document;
 };
 
-type ToolbarItem = ShorthandValue<ToolbarItemProps & { kind?: ToolbarItemShorthandKinds }>;
-type OverflowItem = ShorthandValue<ToolbarMenuItemProps & { kind?: ToolbarMenuItemShorthandKinds }>;
+type ToolbarItem = ShorthandValue<ToolbarItemProps & { kind?: keyof ToolbarItemShorthandKinds }>;
+type OverflowItem = ShorthandValue<ToolbarMenuItemProps & { kind?: keyof ToolbarMenuItemShorthandKinds }>;
 
 const EditorToolbar: React.FC<EditorToolbarProps> = props => {
   const overflowIndex = React.useRef<number>();
@@ -71,7 +87,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
     {
       toolbarItem: {
         key: 'bold',
-        icon: 'bold',
+        icon: <BoldIcon />,
         active: props.bold,
         onClick: () => props.dispatch({ type: 'BOLD', value: !props.bold }),
       },
@@ -79,7 +95,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
     {
       toolbarItem: {
         key: 'italic',
-        icon: 'italic',
+        icon: <ItalicIcon />,
         active: props.italic,
         onClick: () => props.dispatch({ type: 'ITALIC', value: !props.italic }),
       },
@@ -87,7 +103,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
     {
       toolbarItem: {
         key: 'underline',
-        icon: 'underline',
+        icon: <UnderlineIcon />,
         active: props.underline,
         onClick: () => props.dispatch({ type: 'UNDERLINE', value: !props.underline }),
       },
@@ -95,9 +111,9 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
 
     { toolbarItem: { key: 'divider-1', kind: 'divider' } },
 
-    { toolbarItem: { key: 'highlight', icon: 'highlight', active: props.fontHighlight } },
-    { toolbarItem: { key: 'font-color', icon: 'font-color', active: props.fontColor } },
-    { toolbarItem: { key: 'font-size', icon: 'font-size', active: props.fontSize } },
+    { toolbarItem: { key: 'highlight', icon: <HighlightIcon />, active: props.fontHighlight } },
+    { toolbarItem: { key: 'font-color', icon: <FontColorIcon />, active: props.fontColor } },
+    { toolbarItem: { key: 'font-size', icon: <FontSizeIcon />, active: props.fontSize } },
 
     {
       toolbarItem: {
@@ -107,7 +123,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
         children: (
           <Flex gap="gap.smaller">
             <Text styles={{ whiteSpace: 'nowrap' }} content={props.fontFormatting} />
-            <Icon name="chevron-down" />
+            <ChevronDownIcon />
           </Flex>
         ),
       },
@@ -131,31 +147,31 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
           },
           open: props.fontFormattingOpen,
         },
-        icon: 'question',
+        icon: <QnaIcon />,
         content: props.fontFormatting,
       },
     },
 
     {
-      toolbarItem: { key: 'remove-format', icon: 'remove-format' },
-      overflowItem: { key: 'remove-format', icon: 'remove-format', content: 'Clear formatting' },
+      toolbarItem: { key: 'remove-format', icon: <RemoveFormatIcon /> },
+      overflowItem: { key: 'remove-format', icon: <RemoveFormatIcon />, content: 'Clear formatting' },
     },
     { toolbarItem: { key: 'divider-2', kind: 'divider' } },
 
     {
-      toolbarItem: { key: 'bullets', icon: 'bullets', active: props.itemList },
+      toolbarItem: { key: 'bullets', icon: <BulletsIcon />, active: props.itemList },
       overflowItem: {
         key: 'bullets',
-        icon: 'bullets',
+        icon: <BulletsIcon />,
         active: props.itemList,
         content: 'Bulleted list',
       },
     },
     {
-      toolbarItem: { key: 'number-list', icon: 'number-list', active: props.numberList },
+      toolbarItem: { key: 'number-list', icon: <NumberListIcon />, active: props.numberList },
       overflowItem: {
         key: 'number-list',
-        icon: 'number-list',
+        icon: <NumberListIcon />,
         active: props.numberList,
         content: 'Number list',
       },
@@ -166,7 +182,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
     {
       toolbarItem: {
         key: 'link',
-        icon: 'link',
+        icon: <LinkIcon />,
         active: props.link,
         children: (Component, props) => (
           <Ref innerRef={linkItemRef}>
@@ -177,7 +193,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
       },
       overflowItem: {
         key: 'link',
-        icon: 'link',
+        icon: <LinkIcon />,
         content: 'Insert link',
         onClick: () => props.dispatch({ type: 'LINK', value: true }),
       },
@@ -185,12 +201,12 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
     {
       toolbarItem: {
         key: 'code',
-        icon: 'code-snippet',
+        icon: <CodeSnippetIcon />,
         active: props.code,
       },
       overflowItem: {
         key: 'code',
-        icon: 'code-snippet',
+        icon: <CodeSnippetIcon />,
         content: 'Code snippet',
         active: props.code,
       },
@@ -198,7 +214,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
     {
       toolbarItem: {
         key: 'table',
-        icon: 'table',
+        icon: <TableIcon />,
         content: 'Insert table',
         active: props.table,
 
@@ -232,7 +248,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
 
   useEventListener({
     listener: (e: KeyboardEvent) => {
-      const code = keyboardKey.getCode(e);
+      const code = getCode(e);
 
       if (code === keyboardKey.K && e.ctrlKey) {
         // Ctrl+K is a browser hotkey, it's required to prevent defaults
@@ -313,7 +329,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = props => {
             }}
           />
         </Ref>
-        <Toolbar items={[{ key: 'trash', icon: { name: 'trash-can', outline: true } }]} />
+        <Toolbar items={[{ key: 'trash', icon: <TrashCanIcon {...{ outline: true }} /> }]} />
       </Flex>
     </>
   );

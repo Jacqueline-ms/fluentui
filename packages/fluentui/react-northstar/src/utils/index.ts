@@ -2,7 +2,6 @@ export { default as applyAccessibilityKeyHandlers } from './applyAccessibilityKe
 export { default as AutoControlledComponent } from './AutoControlledComponent';
 export { default as childrenExist } from './childrenExist';
 export { default as UIComponent } from './UIComponent';
-export { createRenderer, felaRenderer } from './felaRenderer';
 export { default as rtlTextContainer } from './rtlTextContainer';
 export { default as stringLiteralsArray } from './stringLiteralsArray';
 export { default as getOrGenerateIdFromShorthand } from './getOrGenerateIdFromShorthand';
@@ -25,6 +24,7 @@ export { getKindProp } from './getKindProp';
 export * from './whatInput';
 
 export * from './commonPropInterfaces';
+export { screenReaderContainerStyles } from './accessibility/Styles/accessibilityStyles';
 // work around api-extractor limitation
 import { CreateCommonConfig as CreateCommonConfigLocal, createCommon as createCommonLocal } from './commonPropTypes';
 

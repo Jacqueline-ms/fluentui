@@ -1,5 +1,6 @@
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
+import { ReactTestRenderer } from 'react-test-renderer';
+import { create } from '@uifabric/utilities/lib/test';
 import chalk from 'chalk';
 import * as glob from 'glob';
 import * as path from 'path';
@@ -87,6 +88,12 @@ const excludedExampleFileRegexes: RegExp[] = [
   /^Panel\./,
 ];
 
+function setCacheFullWarning(enabled: boolean) {
+  (window as any).FabricConfig = {
+    enableClassNameCacheFullWarning: enabled,
+  };
+}
+
 declare const global: any;
 
 /**
@@ -148,6 +155,10 @@ describe('Component Examples', () => {
     jest.spyOn(Math, 'random').mockImplementation(() => {
       return 0;
     });
+
+    // Enable cache full warning. If warning occurs, the test will fail.
+    // This helps us catch mutating styles which cause cache to always miss.
+    setCacheFullWarning(true);
   });
 
   afterAll(() => {
@@ -177,6 +188,8 @@ describe('Component Examples', () => {
         globalSnapshotState.added += snapshotState.added;
       }
     });
+
+    setCacheFullWarning(false);
   });
 
   for (const examplePath of examplePaths) {
@@ -200,9 +213,9 @@ describe('Component Examples', () => {
         );
       }
 
-      let component: renderer.ReactTestRenderer;
+      let component: ReactTestRenderer;
       try {
-        component = renderer.create(<ComponentUnderTest />);
+        component = create(<ComponentUnderTest />);
       } catch (e) {
         // Log with console.log so that the console.warn/error overrides from jest-setup.js don't re-throw the
         // exception in a way that hides the stack/info; and then manually re-throw
@@ -216,7 +229,7 @@ describe('Component Examples', () => {
         throw e;
       }
 
-      const tree = component.toJSON();
+      const tree = component!.toJSON();
       (expect(tree) as any).toMatchSpecificSnapshot(exampleFile);
     });
   }

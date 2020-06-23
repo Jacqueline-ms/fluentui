@@ -74,11 +74,14 @@ export const colorScheme: ColorSchemeMapping = {
     backgroundHover: accessibleCyan,
     backgroundHover1: accessibleCyan,
     backgroundHover2: accessibleCyan,
+    backgroundHover3: colors.black,
+    backgroundHover4: colors.black,
 
     borderHover: accessibleCyan,
 
     foregroundPressed: colors.black,
     backgroundPressed: accessibleCyan,
+    backgroundPressed3: accessibleCyan,
     borderPressed: accessibleCyan,
     foregroundActive: accessibleCyan,
     foregroundActive1: colors.black,
@@ -109,6 +112,8 @@ export const colorScheme: ColorSchemeMapping = {
 
     backgroundDisabled: accessibleGreen,
     backgroundDisabled1: colors.black,
+    backgroundDisabled2: accessibleGreen,
+    backgroundDisabled3: accessibleGreen,
 
     borderDisabled: accessibleGreen,
   }),
@@ -140,6 +145,7 @@ export const colorScheme: ColorSchemeMapping = {
 
     backgroundHover: accessibleCyan,
     backgroundHover1: accessibleCyan,
+    backgroundHover2: accessibleYellow,
 
     foregroundPressed: colors.black,
     foregroundPressed1: colors.black,

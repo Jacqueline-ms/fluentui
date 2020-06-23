@@ -11,7 +11,10 @@ export interface IIconState {
 }
 
 const getClassNames = classNamesFunction<IIconStyleProps, IIconStyles>({
-  disableCaching: true,
+  // Icon is used a lot by other components.
+  // It's likely to see expected cases which pass different className to the Icon.
+  // Therefore setting a larger cache size.
+  cacheSize: 100,
 });
 
 export class IconBase extends React.Component<IIconProps, IIconState> {
@@ -23,13 +26,13 @@ export class IconBase extends React.Component<IIconProps, IIconState> {
   }
 
   public render() {
-    const { className, styles, iconName, imageErrorAs, theme } = this.props;
+    const { children, className, styles, iconName, imageErrorAs, theme } = this.props;
     const isPlaceholder = typeof iconName === 'string' && iconName.length === 0;
     const isImage =
       // tslint:disable-next-line:deprecation
       !!this.props.imageProps || this.props.iconType === IconType.image || this.props.iconType === IconType.Image;
     const iconContent = getIconContent(iconName) || {};
-    const { iconClassName, children } = iconContent;
+    const { iconClassName, children: iconContentChildren } = iconContent;
 
     const classNames = getClassNames(styles, {
       theme: theme!,
@@ -62,7 +65,7 @@ export class IconBase extends React.Component<IIconProps, IIconState> {
 
     return (
       <RootType data-icon-name={iconName} {...containerProps} {...nativeProps} className={classNames.root}>
-        {isImage ? <ImageType {...imageProps} /> : children}
+        {isImage ? <ImageType {...imageProps} /> : children || iconContentChildren}
       </RootType>
     );
   }

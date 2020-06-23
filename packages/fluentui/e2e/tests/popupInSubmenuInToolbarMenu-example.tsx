@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Toolbar, ToolbarItemShorthandKinds, Input } from '@fluentui/react-northstar';
+import { Toolbar, Input } from '@fluentui/react-northstar';
+import { ItalicIcon } from '@fluentui/react-icons-northstar';
 
 export const selectors = {
   toolbarMenuId: 'toolbarMenu',
@@ -50,8 +51,8 @@ const ToolbarExamplePopupInMenu = () => {
           {
             id: selectors.dummyButtonId,
             key: 'italic',
-            kind: 'toggle' as ToolbarItemShorthandKinds,
-            icon: { name: 'italic', outline: true },
+            kind: 'toggle',
+            icon: <ItalicIcon {...{ outline: true }} />,
           },
         ]}
       />

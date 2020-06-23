@@ -22,10 +22,10 @@ export type __MapToFunctionType<T> = Extract<T, Function> extends never
  * It may optionally contain style functions for sub components in the special `subComponentStyles`
  * property.
  */
-export type IStyleSet<TStyleSet extends IStyleSet<TStyleSet>> = {
+export type IStyleSet<TStyleSet extends IStyleSet<TStyleSet> = { [key: string]: any }> = {
   [P in keyof Omit<TStyleSet, 'subComponentStyles'>]: IStyle;
 } & {
-  subComponentStyles?: { [P in keyof TStyleSet['subComponentStyles']]: IStyleFunctionOrObject<any, IStyleSet<any>> };
+  subComponentStyles?: { [P in keyof TStyleSet['subComponentStyles']]: IStyleFunctionOrObject<any, any> };
 };
 
 /**
@@ -34,7 +34,7 @@ export type IStyleSet<TStyleSet extends IStyleSet<TStyleSet>> = {
 export type IConcatenatedStyleSet<TStyleSet extends IStyleSet<TStyleSet>> = {
   [P in keyof Omit<TStyleSet, 'subComponentStyles'>]: IStyle;
 } & {
-  subComponentStyles?: { [P in keyof TStyleSet['subComponentStyles']]: IStyleFunction<any, IStyleSet<any>> };
+  subComponentStyles?: { [P in keyof TStyleSet['subComponentStyles']]: IStyleFunction<any, any> };
 };
 
 /**

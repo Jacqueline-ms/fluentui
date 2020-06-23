@@ -1,10 +1,19 @@
 import { knobComponents, KnobsSnippet } from '@fluentui/code-sandbox';
-import { CopyToClipboard, KnobInspector, KnobProvider, LogInspector } from '@fluentui/docs-components';
+import {
+  CopyToClipboard,
+  KnobInspector,
+  KnobProvider,
+  LogInspector,
+  Editor,
+  EDITOR_BACKGROUND_COLOR,
+  EDITOR_GUTTER_COLOR,
+} from '@fluentui/docs-components';
 import {
   ComponentVariablesInput,
   constants,
   Flex,
   ICSSInJSStyle,
+  Image,
   Menu,
   Provider,
   Segment,
@@ -18,7 +27,6 @@ import qs from 'qs';
 import SourceRender from 'react-source-render';
 
 import { examplePathToHash, getFormattedHash, scrollToAnchor } from '../../../utils';
-import Editor, { EDITOR_BACKGROUND_COLOR, EDITOR_GUTTER_COLOR } from '../../Editor';
 import { babelConfig, importResolver } from '../../Playground/renderConfig';
 import ExampleContext, { ExampleContextValue } from '../../../context/ExampleContext';
 import ComponentControls from '../ComponentControls';
@@ -26,6 +34,8 @@ import ComponentExampleTitle from './ComponentExampleTitle';
 import ComponentSourceManager, { ComponentSourceManagerRenderProps } from '../ComponentSourceManager';
 import VariableResolver from '../../VariableResolver/VariableResolver';
 import ComponentExampleVariables from './ComponentExampleVariables';
+// TODO: find replacement
+import { ReplyIcon, AcceptIcon, EditIcon } from '@fluentui/react-icons-northstar';
 
 const ERROR_COLOR = '#D34';
 
@@ -35,10 +45,10 @@ export interface ComponentExampleProps
     ExampleContextValue {
   error: Error | null;
   onError: (error: Error | null) => void;
-  title: React.ReactNode;
+  title: string;
+  titleForAriaLabel?: string;
   description?: React.ReactNode;
   examplePath: string;
-  toolbarAriaLabel?: string;
   resetTheme?: boolean;
 }
 
@@ -221,6 +231,10 @@ class ComponentExample extends React.Component<ComponentExampleProps, ComponentE
     return this.kebabExamplePath;
   };
 
+  getSourceFileNameHint = () => {
+    return `Source code: ${this.props.examplePath.split('/').pop()}`;
+  };
+
   handleCodeApiChange = apiType => () => {
     this.props.handleCodeAPIChange(apiType);
   };
@@ -315,7 +329,7 @@ class ComponentExample extends React.Component<ComponentExampleProps, ComponentE
 
     const menuItems = [
       {
-        icon: canCodeBeFormatted ? 'magic' : 'check', // (error && 'bug') || (canCodeBeFormatted ? 'magic' : 'check')
+        icon: canCodeBeFormatted ? <EditIcon /> : <AcceptIcon />,
         // active: !!error,
         content: 'Prettier',
         key: 'prettier',
@@ -323,8 +337,8 @@ class ComponentExample extends React.Component<ComponentExampleProps, ComponentE
         disabled: !canCodeBeFormatted,
       },
       {
-        icon: 'refresh',
         content: 'Reset',
+        icon: <ReplyIcon />,
         key: 'reset',
         onClick: this.resetSourceCode,
         disabled: !wasCodeChanged,
@@ -334,14 +348,14 @@ class ComponentExample extends React.Component<ComponentExampleProps, ComponentE
         children: (Component, props) => (
           <CopyToClipboard key="copy" value={currentCode}>
             {(active, onClick) => (
-              <Component {...props} active={active} icon={active ? 'check' : 'copy'} onClick={onClick} />
+              <Component {...props} active={active} icon={active && <AcceptIcon />} onClick={onClick} />
             )}
           </CopyToClipboard>
         ),
       },
       {
         disabled: currentCodeLanguage !== 'ts',
-        icon: 'github',
+        icon: <Image src="public/images/github.png" width="16px" height="16px" />,
         content: 'Edit',
         href: ghEditHref,
         rel: 'noopener noreferrer',
@@ -420,8 +434,8 @@ class ComponentExample extends React.Component<ComponentExampleProps, ComponentE
       defaultExport,
       onError,
       title,
+      titleForAriaLabel,
       wasCodeChanged,
-      toolbarAriaLabel,
       resetTheme,
     } = this.props;
     const {
@@ -458,10 +472,14 @@ class ComponentExample extends React.Component<ComponentExampleProps, ComponentE
 
             <Segment styles={{ padding: 0, borderBottom: '1px solid #ddd' }}>
               <Flex space="between" style={{ padding: '10px 20px' }}>
-                <ComponentExampleTitle description={description} title={title} />
+                <ComponentExampleTitle
+                  description={description}
+                  title={title}
+                  sourceHint={this.getSourceFileNameHint()}
+                />
 
                 <ComponentControls
-                  toolbarAriaLabel={toolbarAriaLabel}
+                  titleForAriaLabel={title || titleForAriaLabel}
                   anchorName={anchorName}
                   exampleCode={currentCode}
                   exampleLanguage={currentCodeLanguage}
